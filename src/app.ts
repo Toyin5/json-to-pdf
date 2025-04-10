@@ -20,8 +20,13 @@ app.post("/convert", async (req, res) => {
   }
   try {
     const file = await exportAsPdf("Testing", json);
-    console.log(file);
-    res.status(200).json({ message: "Success" });
+    res
+      .writeHead(200, {
+        "Content-Length": Buffer.byteLength(await file.arrayBuffer()),
+        "Content-Type": "application/pdf",
+        "Content-Disposition": "attachment; filename=" + `${file.name}.pdf`,
+      })
+      .end(Buffer.from(new Uint8Array(await file.arrayBuffer())));
   } catch (error) {
     console.log(error);
     res.status(400).json({ error: "Invalid JSON" });

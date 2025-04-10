@@ -19,6 +19,9 @@ import {
   PageSizesAt72DPI,
 } from "../types/form-builder.constant";
 import path from "path";
+import * as fs from "fs";
+import { Image } from "canvas";
+import { JSDOM } from "jsdom";
 
 const traverseArray = (
   arr: any[],
@@ -79,8 +82,10 @@ export const exportAsPdf = async (
   const projectPages = JSON.parse(jsonData) as ProjectPages;
   console.log("Project pages");
   console.log(projectPages);
-  const currentDir = path.join(__dirname, "../", "assets");
-  console.log(currentDir);
+  const assetPath = path.join(__dirname, "../", "assets");
+  console.log(assetPath);
+
+  let document = new JSDOM("").window.document;
 
   const fechedPdfs: { pdf: PDFDocument; url: string }[] = [];
   const fetchedFonts: { font: PDFFont; style: string; fontName: string }[] = [];
@@ -108,70 +113,70 @@ export const exportAsPdf = async (
 
   const fonts = {
     "Greycliff CF": {
-      Regular: `${currentDir}/fonts/greycliff-cf/greycliff-cf-medium.ttf`,
-      "Regular-Italic": `${currentDir}/fonts/greycliff-cf/greycliff-cf-mediumitalic.ttf`,
-      "Bold-Italic": `${currentDir}/fonts/greycliff-cf/greycliff-cf-bolditalic.ttf`,
-      Bold: `${currentDir}/fonts/greycliff-cf/greycliff-cf-bold.ttf`,
+      Regular: `${assetPath}/fonts/greycliff-cf/greycliff-cf-medium.ttf`,
+      "Regular-Italic": `${assetPath}/fonts/greycliff-cf/greycliff-cf-mediumitalic.ttf`,
+      "Bold-Italic": `${assetPath}/fonts/greycliff-cf/greycliff-cf-bolditalic.ttf`,
+      Bold: `${assetPath}/fonts/greycliff-cf/greycliff-cf-bold.ttf`,
     },
     Arial: {
-      Regular: `${currentDir}/fonts/arial/arial.ttf`,
-      "Regular-Italic": `${currentDir}/fonts/arial/arial-italic.ttf`,
-      "Bold-Italic": `${currentDir}/fonts/arial/arial-bold-italic.ttf`,
-      Bold: `${currentDir}/fonts/arial/arial-bold.ttf`,
+      Regular: `${assetPath}/fonts/arial/arial.ttf`,
+      "Regular-Italic": `${assetPath}/fonts/arial/arial-italic.ttf`,
+      "Bold-Italic": `${assetPath}/fonts/arial/arial-bold-italic.ttf`,
+      Bold: `${assetPath}/fonts/arial/arial-bold.ttf`,
     },
     Poppins: {
-      Regular: `${currentDir}/fonts/poppins/poppins-regular.ttf`,
-      "Regular-Italic": `${currentDir}/fonts/poppins/poppins-italic.ttf`,
-      "Bold-Italic": `${currentDir}/fonts/poppins/poppins-bold-italic.ttf`,
-      Bold: `${currentDir}/fonts/poppins/poppins-bold.ttf`,
+      Regular: `${assetPath}/fonts/poppins/poppins-regular.ttf`,
+      "Regular-Italic": `${assetPath}/fonts/poppins/poppins-italic.ttf`,
+      "Bold-Italic": `${assetPath}/fonts/poppins/poppins-bold-italic.ttf`,
+      Bold: `${assetPath}/fonts/poppins/poppins-bold.ttf`,
     },
     Monospace: {
-      Regular: `${currentDir}/fonts/monospace/monospace.ttf`,
-      "Regular-Italic": `${currentDir}/fonts/monospace/monospace-oblique.ttf`,
-      "Bold-Italic": `${currentDir}/fonts/monospace/monospace-bold.ttf`,
-      Bold: `${currentDir}/fonts/monospace/monospace-bold.ttf`,
+      Regular: `${assetPath}/fonts/monospace/monospace.ttf`,
+      "Regular-Italic": `${assetPath}/fonts/monospace/monospace-oblique.ttf`,
+      "Bold-Italic": `${assetPath}/fonts/monospace/monospace-bold.ttf`,
+      Bold: `${assetPath}/fonts/monospace/monospace-bold.ttf`,
     },
     "Roboto Mono": {
-      Regular: `${currentDir}/fonts/roboto-mono/roboto-mono-regular.ttf`,
-      "Regular-Italic": `${currentDir}/fonts/roboto-mono/roboto-mono-italic.ttf`,
-      "Bold-Italic": `${currentDir}/fonts/roboto-mono/roboto-mono-bold-italic.ttf`,
-      Bold: `${currentDir}/fonts/roboto-mono/roboto-mono-bold.ttf`,
+      Regular: `${assetPath}/fonts/roboto-mono/roboto-mono-regular.ttf`,
+      "Regular-Italic": `${assetPath}/fonts/roboto-mono/roboto-mono-italic.ttf`,
+      "Bold-Italic": `${assetPath}/fonts/roboto-mono/roboto-mono-bold-italic.ttf`,
+      Bold: `${assetPath}/fonts/roboto-mono/roboto-mono-bold.ttf`,
     },
     "Brush Script MT": {
-      Regular: `${currentDir}/fonts/brush-script-mt/brush-script-mt-regular.ttf`,
-      "Regular-Italic": `${currentDir}/fonts/brush-script-mt/brush-script-mt-italic.ttf`,
-      "Bold-Italic": `${currentDir}/fonts/brush-script-mt/brush-script-mt-medium.ttf`,
-      Bold: `${currentDir}/fonts/brush-script-mt/brush-script-mt-medium.ttf`,
+      Regular: `${assetPath}/fonts/brush-script-mt/brush-script-mt-regular.ttf`,
+      "Regular-Italic": `${assetPath}/fonts/brush-script-mt/brush-script-mt-italic.ttf`,
+      "Bold-Italic": `${assetPath}/fonts/brush-script-mt/brush-script-mt-medium.ttf`,
+      Bold: `${assetPath}/fonts/brush-script-mt/brush-script-mt-medium.ttf`,
     },
     Italianno: {
-      Regular: `${currentDir}/fonts/italianno/italianno.ttf`,
-      "Regular-Italic": `${currentDir}/fonts/italianno/italianno.ttf`,
-      "Bold-Italic": `${currentDir}/fonts/italianno/italianno.ttf`,
-      Bold: `${currentDir}/fonts/italianno/italianno.ttf`,
+      Regular: `${assetPath}/fonts/italianno/italianno.ttf`,
+      "Regular-Italic": `${assetPath}/fonts/italianno/italianno.ttf`,
+      "Bold-Italic": `${assetPath}/fonts/italianno/italianno.ttf`,
+      Bold: `${assetPath}/fonts/italianno/italianno.ttf`,
     },
     "Edwardian Script ITC": {
-      Regular: `${currentDir}/fonts/edwardian-script-itc/edwardian-script-itc.ttf`,
-      "Regular-Italic": `${currentDir}/fonts/edwardian-script-itc/edwardian-script-itc.ttf`,
-      "Bold-Italic": `${currentDir}/fonts/edwardian-script-itc/edwardian-script-itc-std-bold.ttf`,
-      Bold: `${currentDir}/fonts/edwardian-script-itc/edwardian-script-itc-std-bold.ttf`,
+      Regular: `${assetPath}/fonts/edwardian-script-itc/edwardian-script-itc.ttf`,
+      "Regular-Italic": `${assetPath}/fonts/edwardian-script-itc/edwardian-script-itc.ttf`,
+      "Bold-Italic": `${assetPath}/fonts/edwardian-script-itc/edwardian-script-itc-std-bold.ttf`,
+      Bold: `${assetPath}/fonts/edwardian-script-itc/edwardian-script-itc-std-bold.ttf`,
     },
     "Freestyle Script": {
-      Regular: `${currentDir}/fonts/freestyle-script/freestyle-script-regular.ttf`,
-      "Regular-Italic": `${currentDir}/fonts/freestyle-script/freestyle-script-regular.ttf`,
-      "Bold-Italic": `${currentDir}/fonts/freestyle-script/freestyle-script-regular.ttf`,
-      Bold: `${currentDir}/fonts/freestyle-script/freestyle-script-regular.ttf`,
+      Regular: `${assetPath}/fonts/freestyle-script/freestyle-script-regular.ttf`,
+      "Regular-Italic": `${assetPath}/fonts/freestyle-script/freestyle-script-regular.ttf`,
+      "Bold-Italic": `${assetPath}/fonts/freestyle-script/freestyle-script-regular.ttf`,
+      Bold: `${assetPath}/fonts/freestyle-script/freestyle-script-regular.ttf`,
     },
     "Lucida Handwriting": {
-      Regular: `${currentDir}/fonts/lucida-handwriting/lucida-handwriting-std-regular.ttf`,
-      "Regular-Italic": `${currentDir}/fonts/lucida-handwriting/lucida-handwriting-italic.ttf`,
-      "Bold-Italic": `${currentDir}/fonts/lucida-handwriting/lucida-handwriting-std-bold.ttf`,
-      Bold: `${currentDir}/fonts/lucida-handwriting/lucida-handwriting-std-bold.ttf`,
+      Regular: `${assetPath}/fonts/lucida-handwriting/lucida-handwriting-std-regular.ttf`,
+      "Regular-Italic": `${assetPath}/fonts/lucida-handwriting/lucida-handwriting-italic.ttf`,
+      "Bold-Italic": `${assetPath}/fonts/lucida-handwriting/lucida-handwriting-std-bold.ttf`,
+      Bold: `${assetPath}/fonts/lucida-handwriting/lucida-handwriting-std-bold.ttf`,
     },
     "Comforter Brush": {
-      Regular: `${currentDir}/fonts/comforter-brush/ComforterBrush-Regular.ttf`,
-      "Regular-Italic": `${currentDir}/fonts/comforter-brush/ComforterBrush-Regular.ttf`,
-      "Bold-Italic": `${currentDir}/fonts/comforter-brush/ComforterBrush-Regular.ttf`,
-      Bold: `${currentDir}/fonts/comforter-brush/ComforterBrush-Regular.ttf`,
+      Regular: `${assetPath}/fonts/comforter-brush/ComforterBrush-Regular.ttf`,
+      "Regular-Italic": `${assetPath}/fonts/comforter-brush/ComforterBrush-Regular.ttf`,
+      "Bold-Italic": `${assetPath}/fonts/comforter-brush/ComforterBrush-Regular.ttf`,
+      Bold: `${assetPath}/fonts/comforter-brush/ComforterBrush-Regular.ttf`,
     },
   };
 
@@ -372,13 +377,11 @@ export const exportAsPdf = async (
       font = existingFont.font;
     } else {
       const weightTxt = fontWeight === "400" ? "Regular" : "Bold";
-      const byte = await (
-        await fetch(
-          (fonts as any)[fontName][
-            `${weightTxt}${fontStyle === "italic" ? "-Italic" : ""}`
-          ]
-        )
-      ).arrayBuffer();
+      const byte = fs.readFileSync(
+        (fonts as any)[fontName][
+          `${weightTxt}${fontStyle === "italic" ? "-Italic" : ""}`
+        ]
+      );
       font = await pdfDoc.embedFont(byte);
       fetchedFonts.push({
         font,
@@ -433,7 +436,7 @@ export const exportAsPdf = async (
   const loadImg = (src: string): Promise<HTMLImageElement> => {
     return new Promise((resolve) => {
       const img = new Image();
-      img.onload = () => resolve(img);
+      img.onload = () => resolve(img as unknown as HTMLImageElement);
       img.src = src;
     });
   };
@@ -1202,16 +1205,16 @@ export const exportAsPdf = async (
   //   // alert('Compression failed: ' + error);
   // }
 
-  if (download) {
-    const fr = new FileReader();
-    fr.onload = (e) => {
-      const a = document.createElement("a");
-      a.href = e.target!.result as string;
-      a.download = `${documentName}.pdf`;
-      a.click();
-    };
-    fr.readAsDataURL(outputPdfFile);
-  }
+  // if (download) {
+  //   const fr = new FileReader();
+  //   fr.onload = (e) => {
+  //     const a = document.createElement("a");
+  //     a.href = e.target!.result as string;
+  //     a.download = `${documentName}.pdf`;
+  //     a.click();
+  //   };
+  //   fr.readAsDataURL(outputPdfFile);
+  // }
 
   return outputPdfFile;
 };

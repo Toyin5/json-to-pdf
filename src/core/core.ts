@@ -38,7 +38,7 @@ import {
   FmbrPropertiesData,
   FmbrPropertyData,
   FmbrPropertyInterface,
-} from "../types/form-builder.interface";
+} from "../interfaces/form-builder.interface";
 import {
   FmbrOptionSources,
   FmbrPageSizeDimensionDefaultDetails,
@@ -4562,6 +4562,7 @@ export class FormBuilderService {
     const loadImg = (src: string): Promise<HTMLImageElement> => {
       return new Promise((resolve) => {
         const img = new Image();
+        img.crossOrigin = "anonymous";
         img.onload = () => resolve(img);
         img.src = src;
       });
@@ -4594,7 +4595,7 @@ export class FormBuilderService {
         | "right top"
         | "right center"
         | "right bottom";
-    }) => {
+    }): Promise<Geometry> => {
       const pdfPageSize = page.getSize();
       type = type || (await fetch(url)).headers.get("Content-Type")!;
       let ny = pdfPageSize.height - y - height;
@@ -4622,9 +4623,9 @@ export class FormBuilderService {
             const img = await loadImg(url);
             const canvas = document.createElement("canvas");
             canvas.width =
-              img.naturalWidth * (type === "image/svg+xml" ? 2 : 1);
+              img.naturalWidth * (type === "image/svg+xml" ? 5 : 1);
             canvas.height =
-              img.naturalHeight * (type === "image/svg+xml" ? 2 : 1);
+              img.naturalHeight * (type === "image/svg+xml" ? 5 : 1);
             const ctx = canvas.getContext("2d")!;
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
             const canvasUrl = canvas.toDataURL("image/png");
@@ -4675,12 +4676,9 @@ export class FormBuilderService {
       }
       if (objectFit === "contain") {
         const img = await loadImg(url);
-        let nw = img.naturalWidth;
-        let nh = img.naturalHeight;
-        if (nw > width) {
-          nw = width;
-          nh = (nw * img.naturalHeight) / img.naturalWidth;
-        }
+        let nw = width;
+        let nh = height;
+        nh = (nw * img.naturalHeight) / img.naturalWidth;
         if (nh > height) {
           nh = height;
           nw = (nh * img.naturalWidth) / img.naturalHeight;
@@ -4700,6 +4698,7 @@ export class FormBuilderService {
         height = nh;
       }
       page.drawImage(pdfImg, { x, y: ny, width, height, opacity });
+      return { x, y: pdfPageSize.height - height - ny, width, height };
     };
 
     const drawLink = ({
@@ -4804,33 +4803,32 @@ export class FormBuilderService {
         });
       }
 
-      const pageBgColor = propertyValue(pageData.properties, "Color");
-      const pageBgColorOpacity = propertyValue(
-        pageData.properties,
-        "Color opacity"
-      );
-
-      drawBox({
-        ...page.getSize(),
-        x: 0,
-        y: 0,
-        color: `${pageBgColor}${Math.round(
-          ((pageBgColorOpacity > 100
-            ? 100
-            : pageBgColorOpacity < 0
-            ? 0
-            : pageBgColorOpacity) /
-            100) *
-            255
-        )
-          .toString(16)
-          .padStart(2, "0")}`,
-        borderRadius: 0,
-        strokeColor: "#ffffff00",
-        page,
-      });
-
       if (!existingPage) {
+        const pageBgColor = propertyValue(pageData.properties, "Color");
+        const pageBgColorOpacity = propertyValue(
+          pageData.properties,
+          "Color opacity"
+        );
+
+        drawBox({
+          ...page.getSize(),
+          x: 0,
+          y: 0,
+          color: `${pageBgColor}${Math.round(
+            ((pageBgColorOpacity > 100
+              ? 100
+              : pageBgColorOpacity < 0
+              ? 0
+              : pageBgColorOpacity) /
+              100) *
+              255
+          )
+            .toString(16)
+            .padStart(2, "0")}`,
+          borderRadius: 0,
+          strokeColor: "#ffffff00",
+          page,
+        });
         const url = propertyValue(pageData.properties, "Image");
         const objectFit = propertyValue(pageData.properties, "Size") as
           | "auto"
@@ -4854,7 +4852,7 @@ export class FormBuilderService {
               page,
             });
           } else if (objectFit === "contain") {
-            await drawImg({
+            const originalGeometry = await drawImg({
               ...page.getSize(),
               x: 0,
               y: 0,
@@ -4864,8 +4862,32 @@ export class FormBuilderService {
               opacity,
               page,
             });
+            let lastGeometry = { ...originalGeometry };
             if (repeat === "repeat") {
-              // repeat algorithm
+              // draw imag from current to top
+              while (lastGeometry.y > 0) {
+                lastGeometry = await drawImg({
+                  ...lastGeometry,
+                  y: lastGeometry.y - lastGeometry.height,
+                  url,
+                  opacity,
+                  page,
+                });
+              }
+              lastGeometry = { ...originalGeometry };
+              //draws image from current downward;
+              while (
+                lastGeometry.y <
+                page.getSize().height - lastGeometry.height
+              ) {
+                lastGeometry = await drawImg({
+                  ...lastGeometry,
+                  y: lastGeometry.y + lastGeometry.height,
+                  url,
+                  opacity,
+                  page,
+                });
+              }
             }
           } else {
             const img = await loadImg(url);
@@ -4887,7 +4909,73 @@ export class FormBuilderService {
               y = +pageHeight - height;
             }
 
-            await drawImg({ x, y, width, height, opacity, url, page });
+            const originalGeometry = await drawImg({
+              x,
+              y,
+              width,
+              height,
+              opacity,
+              url,
+              page,
+            });
+            let lastGeometry = { ...originalGeometry };
+            const verticalGeometries = [{ ...lastGeometry }];
+            if (repeat === "repeat") {
+              // draw imag from current to top
+              while (lastGeometry.y > 0) {
+                lastGeometry = await drawImg({
+                  ...lastGeometry,
+                  y: lastGeometry.y - lastGeometry.height,
+                  url,
+                  opacity,
+                  page,
+                });
+                verticalGeometries.unshift({ ...lastGeometry });
+              }
+              lastGeometry = { ...originalGeometry };
+              //draws image from current downward;
+              while (
+                lastGeometry.y <
+                page.getSize().height - lastGeometry.height
+              ) {
+                lastGeometry = await drawImg({
+                  ...lastGeometry,
+                  y: lastGeometry.y + lastGeometry.height,
+                  url,
+                  opacity,
+                  page,
+                });
+                verticalGeometries.push({ ...lastGeometry });
+              }
+
+              for (const geometry of verticalGeometries) {
+                // draw imag from current to left
+                lastGeometry = { ...geometry };
+                while (lastGeometry.x > 0) {
+                  lastGeometry = await drawImg({
+                    ...lastGeometry,
+                    x: lastGeometry.x - lastGeometry.width,
+                    url,
+                    opacity,
+                    page,
+                  });
+                }
+                lastGeometry = { ...geometry };
+                //draws image from current to right;
+                while (
+                  lastGeometry.x <
+                  page.getSize().width - lastGeometry.width
+                ) {
+                  lastGeometry = await drawImg({
+                    ...lastGeometry,
+                    x: lastGeometry.x + lastGeometry.width,
+                    url,
+                    opacity,
+                    page,
+                  });
+                }
+              }
+            }
           }
         }
       }
@@ -5232,11 +5320,12 @@ export class FormBuilderService {
           });
         }
         if (control.value) {
-          if (control.name.match(/signature|initials/i)) {
+          if (control.name.match(/signature|initials|stamp/i)) {
             const url = control.value;
             await drawImg({
               ...control.pdfGenerationInfo.valueGeometry!,
               url,
+              objectFit: "contain",
               page,
             });
           } else if (
