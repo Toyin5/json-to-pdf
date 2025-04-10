@@ -38,7 +38,7 @@ import {
   FmbrPropertiesData,
   FmbrPropertyData,
   FmbrPropertyInterface,
-} from "../interfaces/form-builder.interface";
+} from "../types/form-builder.interface";
 import {
   FmbrOptionSources,
   FmbrPageSizeDimensionDefaultDetails,
